@@ -1,17 +1,29 @@
 from tkinter import *
-import socket, subprocess
+import socket, subprocess, sys
 
-my_ip = subprocess.check_output(['nslookup', 'myip.opendns.com.', 'resolver1.opendns.com'])
-my_ip = my_ip.decode('cp1251')[-20:-4]
+def find_ip_win():
+    my_ip = subprocess.check_output(['nslookup', 'myip.opendns.com.', 'resolver1.opendns.com'])
+    my_ip = my_ip.decode('cp1251')[-20:-4]
+    for i in my_ip:
+        if not i.isdigit():
+            continue
+        else:
+            strt = my_ip.find(i)
+            break
+    my_ip = my_ip[strt:]
+    return my_ip
 
-for i in my_ip:
-    if not i.isdigit():
-        continue
-    else:
-        strt = my_ip.find(i)
-        break
-    
-my_ip = my_ip[strt:]        
+if sys.platform == 'linux':
+    my_ip = subprocess.check_output(['curl', 'ifconfig.co'])
+else: my_ip = find_ip_win()
+
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+s.bind(('0.0.0.0', 11719))
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
 master = Tk()
 master.title('TTT_online')
@@ -49,6 +61,17 @@ def draw_circle(x,y):
 def draw(event):
     x,y = event.x, event.y
     global count
+    sock.sendto((str(x)+'_'+str(y)+str(count)).encode(), ('255.255.255.255', 11719))
+    
+def draw_con(data):
+    
+    global count
+    count = int(data[-1:])
+    #print(count)
+    x = int(data[:data.find('_')])
+    #print(x)
+    y = int(data[data.find('_')+1:-1])
+    #print(y)
     if count == 1:
         draw_cross(x,y)
         count = 0
@@ -56,19 +79,35 @@ def draw(event):
         draw_circle(x,y)
         count = 1
 
+
 def restart(event):
     w.delete('figure')
 
 def main():
     global conadr
     conadr = conadr.get()
+    #print(conadr)
     w.delete('conn')
     draw_field()
     w.focus_set()    
     w.bind('<Button-1>', draw)
     w.bind('<space>', restart)
+
+
+    def loopproc():
+        s.setblocking(False)
+        try:
+            data = s.recv(128).decode()
+            print(data)
+            draw_con(data)
+        except:
+            master.after(1,loopproc)
+            return
+        master.after(1,loopproc)
+        return
+    master.after(1,loopproc)
     
 conb = Button(w, text='Start', command=main)
 conb_window = w.create_window(200,400, window=conb, tag='conn')
-master.mainloop()
 
+master.mainloop()
