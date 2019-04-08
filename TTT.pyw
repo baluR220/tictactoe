@@ -17,10 +17,14 @@ if sys.platform == 'linux':
     my_ip = subprocess.check_output(['curl', 'ifconfig.co'])
 else: my_ip = find_ip_win()
 
+servadr = '0.0.0.0'
+receiver = '255.255.255.255'
+
+
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-s.bind(('0.0.0.0', 11719))
+s.bind((servadr, 11719))
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -37,7 +41,22 @@ w.create_text(200, 140, text='Connect to:', justify=CENTER, font='Arial 10', tag
 
 conadr = StringVar()
 coninpt = Entry(w, width=30, textvariable=conadr)
+coninpt.insert(0, 'server')
 coninpt_window = w.create_window(200,160, window=coninpt, tag='conn')
+
+is_local = IntVar()
+def change_state():
+    if is_local.get():
+        global conadr
+        coninpt.config(state='disabled')
+        conadr.set('local')
+        print('disabled')
+    else:
+        coninpt.config(state='normal')
+        
+check_local = Checkbutton(w, text='Local play', variable=is_local, command=change_state)
+check_local_window = w.create_window(200, 190, window=check_local, tag='conn')
+print(is_local.get())
 
 
 count = 0
@@ -61,7 +80,7 @@ def draw_circle(x,y):
 def draw(event):
     x,y = event.x, event.y
     global count
-    sock.sendto((str(x)+'_'+str(y)+str(count)).encode(), ('255.255.255.255', 11719))
+    sock.sendto((str(x)+'_'+str(y)+str(count)).encode(), (receiver, 11719))
     
 def draw_con(data):
     
@@ -82,11 +101,22 @@ def draw_con(data):
 
 def restart(event):
     w.delete('figure')
+    sock.sendto('restart'.encode(), (receiver, 11719))
 
 def main():
     global conadr
     conadr = conadr.get()
-    #print(conadr)
+    if not is_local.get():
+        if conadr == 'server':
+            print('server wow')
+        if conadr != 'server' and conadr !='local':
+            try:
+                print('here')
+                p = subprocess.check_output(['ping', conadr])
+                print(p)
+            except:
+                print('incorrect ip')
+    print(conadr)
     w.delete('conn')
     draw_field()
     w.focus_set()    
@@ -99,7 +129,10 @@ def main():
         try:
             data = s.recv(128).decode()
             print(data)
-            draw_con(data)
+            if data=='restart':
+                w.delete('figure')
+            else:
+                draw_con(data)
         except:
             master.after(1,loopproc)
             return
