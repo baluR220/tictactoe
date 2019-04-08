@@ -108,12 +108,13 @@ def main():
     conadr = conadr.get()
     if not is_local.get():
         if conadr == 'server':
+            receiver = my_ip
+            servadr = ''
             print('server wow')
         if conadr != 'server' and conadr !='local':
             try:
-                print('here')
-                p = subprocess.check_output(['ping', conadr])
-                print(p)
+                receiver = conadr
+                p = subprocess.check_output(['ping', receiver])
             except:
                 print('incorrect ip')
     print(conadr)
