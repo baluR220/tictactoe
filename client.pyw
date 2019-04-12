@@ -68,12 +68,13 @@ def draw_circle(x,y):
 def draw(event):
     x,y = event.x, event.y
     global count, dest
-    if count == 1:
-        draw_cross(x,y)
-        count = 0
-    else:
-        draw_circle(x,y)
-        count = 1
+    if conadr.get() != 'localhost':
+        if count == 1:
+            draw_cross(x,y)
+            count = 0
+        else:
+            draw_circle(x,y)
+            count = 1
     sock.sendto((str(x)+'_'+str(y)+str(count)).encode(), dest)
 
 def draw_con(data): 
@@ -100,6 +101,8 @@ def restart(event):
 def main():
     global dest
     if conadr.get()=='localhost':
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         sock.bind(('', 9090))
         dest = ('255.255.255.255', 9090)
         print('local is on')
