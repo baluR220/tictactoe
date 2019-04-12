@@ -12,7 +12,8 @@ while not stop_server:
         data, addr = sock.recvfrom(1024)
         if addr not in players:
             players.append(addr)
-        print(addr, 'is connected')
+        if data.decode() == 'Hello':
+            print(addr, 'is connected')
 
         for player in players:
             if addr!= player:
