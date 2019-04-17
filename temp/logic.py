@@ -7,6 +7,7 @@ main_canvas.pack()
 main_canvas.create_text(200,50, text='Tic-Tac-Toe', justify=CENTER, font='Arial 14')
 count = 0
 free_mode = 0
+moves = []
 
 normal_coords = [[0,150,0,200,100,150],
                  [150,250,0,200,200,150],
@@ -25,19 +26,22 @@ def normalize(ix,iy):
             print(line[4], line[5])
             return(line[4], line[5])
         
+def watch_moves(x,y,count):
     
 
 def draw(event):
+    global count
     x,y = event.x, event.y
     if not free_mode:
         x,y = normalize(x,y)
-    global count
+        watch_moves(x,y,count)
     if count == 1:
         draw_cross(x,y)
         count = 0
     else:
         draw_circle(x,y)
         count = 1
+    
     
 def draw_field():
     main_canvas.create_line(150,100,150,400, fill='black')
@@ -60,10 +64,12 @@ def restart(event):
     global count
     count = 0
     main_canvas.delete('figure')
+def main():
+    draw_field()
+    main_canvas.focus_set()
+    main_canvas.bind('<Button-1>', draw)
+    main_canvas.bind('<space>', restart)
 
-draw_field()
-main_canvas.focus_set()
-main_canvas.bind('<Button-1>', draw)
-main_canvas.bind('<space>', restart)
 
+main()
 master.mainloop()
