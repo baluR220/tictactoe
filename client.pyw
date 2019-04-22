@@ -25,35 +25,18 @@ if sys.platform == 'linux':
     my_ip = subprocess.check_output(['curl', 'ifconfig.co'])
 else: my_ip = find_ip_win()
 
-
-main_canvas.create_text(200,50, text='Tic-Tac-Toe', justify=CENTER, font='Arial 14')
-main_canvas.create_text(200, 100, text=my_ip, justify=CENTER, font='Arial 12', tag='conn')
-main_canvas.create_text(200, 80, text='Your server IP:', justify=CENTER, font='Arial 10', tag='conn')
-main_canvas.create_text(200, 140, text='Connect to:', justify=CENTER, font='Arial 10', tag='conn')
-
 conadr = StringVar()
-coninpt = Entry(main_canvas, width=30, textvariable=conadr)
-coninpt_window = main_canvas.create_window(200,160, window=coninpt, tag='conn')
-
-is_local = IntVar()
-def change_state():
-    if is_local.get():
-        global conadr
-        coninpt.config(state='disabled')
-        conadr.set('localhost')
-        #print('disabled')
-    else:
-        coninpt.config(state='normal')
-check_local = Checkbutton(main_canvas, text='Local play', variable=is_local, command=change_state)
-check_local_window = main_canvas.create_window(200, 190, window=check_local, tag='conn')
+main_canvas.create_text(200,50, text='Tic-Tac-Toe', justify=CENTER, font='Arial 14')
 
 count = 0
 def draw_field():
-    main_canvas.create_line(150,100,150,400, fill='black')
-    main_canvas.create_line(250,100,250,400, fill='black')
-    main_canvas.create_line(50,200,350,200, fill='black')
-    main_canvas.create_line(50,300,350,300, fill='black')
-    main_canvas.create_text(200,450, text='Press Space to restart', justify=CENTER, font='Arial 14')
+    main_canvas.create_line(150,100,150,400, fill='black', tag='field')
+    main_canvas.create_line(250,100,250,400, fill='black', tag='field')
+    main_canvas.create_line(50,200,350,200, fill='black', tag='field')
+    main_canvas.create_line(50,300,350,300, fill='black', tag='field')
+    main_canvas.create_text(200,450, text='Press Space to restart', justify=CENTER, font='Arial 14', tag='field')
+    back_button = Button(main_canvas, text='Back', command=menu, bg='white')
+    back_window = main_canvas.create_window(380,20, window=back_button, tag='field')
  
 def draw_cross(x,y):
     main_canvas.create_polygon(x-10,y,x-40,y-30,x-30,y-40,
@@ -135,9 +118,34 @@ def main():
         return
     master.after(1,loopproc)
 
-conb = Button(main_canvas, text='Start', command=main)
-conb_window = main_canvas.create_window(200,400, window=conb, tag='conn')
 
+def menu():
+    global my_ip
+    main_canvas.delete('field')
+    restart()
+    main_canvas.create_text(200, 100, text=my_ip, justify=CENTER, font='Arial 12', tag='conn')
+    main_canvas.create_text(200, 80, text='Your server IP:', justify=CENTER, font='Arial 10', tag='conn')
+    main_canvas.create_text(200, 140, text='Connect to:', justify=CENTER, font='Arial 10', tag='conn')
+
+
+    coninpt = Entry(main_canvas, width=30, textvariable=conadr)
+    coninpt_window = main_canvas.create_window(200,160, window=coninpt, tag='conn')
+
+    is_local = IntVar()
+    def change_state():
+        if is_local.get():
+            global conadr
+            coninpt.config(state='disabled')
+            conadr.set('localhost')
+            #print('disabled')
+        else:
+            coninpt.config(state='normal')
+            conadr.set('')
+    check_local = Checkbutton(main_canvas, text='Local play', variable=is_local, command=change_state, bg='white')
+    check_local_window = main_canvas.create_window(200, 190, window=check_local, tag='conn')
+    conb = Button(main_canvas, text='Start', command=main, bg='white')
+    conb_window = main_canvas.create_window(200,400, window=conb, tag='conn')
+menu()
 master.mainloop()
 
 quit = False
